@@ -1,0 +1,19 @@
+# CODEOWNERS
+#
+# These owners will be automatically requested for review when someone opens a pull request.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @ydkadri
+
+# Infrastructure as Code - require review for all OpenTofu changes
+/tofu/ @ydkadri
+
+# CI/CD workflows - require review for workflow changes
+/.github/workflows/ @ydkadri
+
+# Documentation - require review for documentation changes
+/docs/ @ydkadri
+CLAUDE.md @ydkadri
+README.md @ydkadri
+ROADMAP.md @ydkadri
