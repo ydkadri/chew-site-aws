@@ -58,8 +58,9 @@ jobs:
       - name: Run TFLint
         run: |
           if [ -d "tofu" ]; then
+            cd tofu
             tflint --init
-            tflint --recursive tofu/
+            tflint --chdir=.
           fi
 
   security:
