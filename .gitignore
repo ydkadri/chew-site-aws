@@ -189,3 +189,4 @@ go.sum
 !.terraform-version
 !.tool-versions
 !.pre-commit-config.yaml
+!.github
