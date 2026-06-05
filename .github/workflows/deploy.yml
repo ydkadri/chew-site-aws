@@ -1,0 +1,106 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-dev:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: https://dev.chew-site.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::636603298497:role/GitHubActionsRole
+          aws-region: ca-central-1
+
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+
+      - name: Initialize Dev
+        run: |
+          cd tofu/environments/dev
+          tofu init
+
+      - name: Plan Dev
+        run: |
+          cd tofu/environments/dev
+          tofu plan -out=tfplan
+
+      - name: Apply Dev
+        run: |
+          cd tofu/environments/dev
+          tofu apply -auto-approve tfplan
+
+      - name: Show Dev Outputs
+        run: |
+          cd tofu/environments/dev
+          tofu output
+
+  deploy-prod:
+    name: Deploy to Prod
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    environment:
+      name: prod
+      url: https://chew-site.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::636603298497:role/GitHubActionsRole
+          aws-region: ca-central-1
+
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+
+      - name: Initialize Prod
+        run: |
+          cd tofu/environments/prod
+          tofu init
+
+      - name: Plan Prod
+        run: |
+          cd tofu/environments/prod
+          tofu plan -out=tfplan
+
+      - name: Apply Prod
+        run: |
+          cd tofu/environments/prod
+          tofu apply -auto-approve tfplan
+
+      - name: Show Prod Outputs
+        run: |
+          cd tofu/environments/prod
+          tofu output
+
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environments:** dev → prod" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ca-central-1" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Infrastructure has been successfully deployed." >> $GITHUB_STEP_SUMMARY
